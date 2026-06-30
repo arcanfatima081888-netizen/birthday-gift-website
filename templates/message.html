@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}My Heartfelt Message ❤️{% endblock %}
+
+{% block content %}
+<div class="container message-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="message-card">
+                <div class="message-header">
+                    <div class="rainbow-divider"></div>
+                    <h2 class="message-title">
+                        <i class="fas fa-heart rainbow-heart-big"></i>
+                        For My Beautiful Girlfriend
+                        <i class="fas fa-heart rainbow-heart-big"></i>
+                    </h2>
+                </div>
+
+                <div class="message-body">
+                    <p class="message-date">
+                        <i class="fas fa-calendar-alt"></i> 
+                        {% if year %}{{ year }}{% else %}2026{% endif %} — Another Year of Loving You
+                    </p>
+
+                    <div class="heartfelt-message">
+                        <p class="lead">
+                            My Dearest Love,
+                        </p>
+                        
+                        <p>
+                            <i class="fas fa-heart rainbow-heart-small"></i>
+                            Happy Birthday to the most incredible woman I've ever known. 
+                            Every day with you feels like a beautiful dream, and I'm so grateful 
+                            that I get to call you mine.
+                        </p>
+
+                        <p>
+                            <i class="fas fa-heart rainbow-heart-small"></i>
+                            You are my sunshine on cloudy days, my strength when I'm weak, 
+                            and my greatest joy in every moment. Your smile lights up my world, 
+                            and your laugh is my favorite sound.
+                        </p>
+
+                        <p>
+                            <i class="fas fa-heart rainbow-heart-small"></i>
+                            In you, I've found not just a girlfriend, but a best friend, 
+                            a confidante, and my soulmate. You complete me in ways I never 
+                            thought possible, and I fall more in love with you every single day.
+                        </p>
+
+                        <p>
+                            <i class="fas fa-heart rainbow-heart-small"></i>
+                            This year, I'm celebrating you — all of you. Your kindness, 
+                            your intelligence, your beauty, your strength, and your 
+                            beautiful rainbow spirit that makes you so uniquely you.
+                        </p>
+
+                        <p class="message-closing">
+                            <i class="fas fa-heart rainbow-heart-big"></i>
+                            Here's to many more birthdays together, my love.<br>
+                            Forever and always,<br>
+                            <span class="rainbow-text">Your Girlfriend 💕</span>
+                        </p>
+                    </div>
+
+                    <div class="message-actions">
+                        <a href="{{ url_for('gallery') }}" class="btn btn-romantic">
+                            <i class="fas fa-images"></i> View Our Memories
+                        </a>
+                        <a href="{{ url_for('home') }}" class="btn btn-romantic-outline">
+                            <i class="fas fa-home"></i> Back Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

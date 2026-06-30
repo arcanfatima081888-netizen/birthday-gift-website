@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Memories 📤{% endblock %}
+
+{% block content %}
+<div class="container upload-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="upload-card">
+                <div class="upload-header text-center">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <h2 class="upload-title">Upload Your Memories</h2>
+                    <div class="rainbow-divider"></div>
+                    <p class="upload-subtitle">
+                        <i class="fas fa-heart rainbow-heart-small"></i>
+                        Add multiple photos and videos to our special gallery
+                        <i class="fas fa-heart rainbow-heart-small"></i>
+                    </p>
+                </div>
+
+                <div class="upload-body">
+                    <form method="POST" enctype="multipart/form-data" class="upload-form" id="uploadForm">
+                        <div class="upload-area" id="dropZone">
+                            <input type="file" name="files" id="fileInput" class="upload-input" accept=".jpg,.jpeg,.png,.gif,.mp4,.mov,.webm" multiple>
+                            <label for="fileInput" class="upload-label">
+                                <i class="fas fa-plus-circle fa-3x"></i>
+                                <p class="upload-text">Click or drag files here</p>
+                                <p class="upload-hint">
+                                    <small>Supports: JPG, JPEG, PNG, GIF, MP4, MOV (Max 50MB each)</small>
+                                </p>
+                                <p class="upload-hint">
+                                    <small>Select multiple files by holding Ctrl (or Cmd on Mac)</small>
+                                </p>
+                            </label>
+                        </div>
+
+                        <!-- File List Preview -->
+                        <div id="fileList" class="file-list mt-3" style="display: none;">
+                            <h6><i class="fas fa-list"></i> Selected Files:</h6>
+                            <ul class="list-group" id="selectedFilesList"></ul>
+                        </div>
+
+                        <div class="upload-info mt-4">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="info-card">
+                                        <i class="fas fa-images info-icon"></i>
+                                        <h6>Multiple Uploads</h6>
+                                        <p class="info-text">
+                                            <small>Upload multiple files at once</small>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="info-card">
+                                        <i class="fas fa-image info-icon"></i>
+                                        <h6>Image Optimization</h6>
+                                        <p class="info-text">
+                                            <small>Images are automatically compressed</small>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="info-card">
+                                        <i class="fas fa-video info-icon"></i>
+                                        <h6>Video Support</h6>
+                                        <p class="info-text">
+                                            <small>MP4 and MOV files up to 50MB each</small>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="upload-actions">
+                            <button type="submit" class="btn btn-romantic btn-lg w-100" id="uploadBtn">
+                                <i class="fas fa-upload"></i> Upload All Files
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="upload-footer text-center mt-4">
+                        <a href="{{ url_for('gallery') }}" class="btn btn-romantic-outline">
+                            <i class="fas fa-images"></i> View Gallery
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // File list preview
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const selectedFilesList = document.getElementById('selectedFilesList');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const dropZone = document.getElementById('dropZone');
+
+    // Update file list when files are selected
+    fileInput.addEventListener('change', function() {
+        const files = this.files;
+        selectedFilesList.innerHTML = '';
+        
+        if (files.length > 0) {
+            fileList.style.display = 'block';
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                
+                const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                const icon = file.type.startsWith('image/') ? 'fa-image' : 'fa-video';
+                
+                li.innerHTML = `
+                    <span>
+                        <i class="fas ${icon} me-2"></i>
+                        ${file.name}
+                    </span>
+                    <span class="badge bg-primary rounded-pill">${fileSize} MB</span>
+                `;
+                selectedFilesList.appendChild(li);
+            }
+            
+            uploadBtn.innerHTML = `<i class="fas fa-upload"></i> Upload ${files.length} File(s)`;
+        } else {
+            fileList.style.display = 'none';
+            uploadBtn.innerHTML = `<i class="fas fa-upload"></i> Upload All Files`;
+        }
+    });
+
+    // Drag and drop functionality
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+    });
+
+    dropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            // Trigger change event
+            fileInput.dispatchEvent(new Event('change'));
+        }
+    });
+
+    // Upload progress feedback
+    document.getElementById('uploadForm').addEventListener('submit', function() {
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+        uploadBtn.classList.add('disabled');
+    });
+</script>
+{% endblock %}
+{% endblock %}

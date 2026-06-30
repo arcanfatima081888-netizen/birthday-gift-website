@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Happy Birthday, My Love 🌈❤️{% endblock %}
+
+{% block content %}
+<div class="container home-container">
+    <div class="row justify-content-center align-items-center min-vh-80">
+        <div class="col-lg-8 text-center">
+            <div class="birthday-card">
+                <div class="rainbow-divider"></div>
+                
+                <div class="birthday-hearts">
+                    <i class="fas fa-heart floating-heart" style="animation-delay: 0s;"></i>
+                    <i class="fas fa-heart floating-heart" style="animation-delay: 1.5s;"></i>
+                    <i class="fas fa-heart floating-heart" style="animation-delay: 3s;"></i>
+                    <i class="fas fa-heart floating-heart" style="animation-delay: 4.5s;"></i>
+                </div>
+
+                <h1 class="birthday-title">
+                    Happy Birthday,<br>
+                    <span class="rainbow-text">My Love</span>
+                    <i class="fas fa-heart rainbow-heart-big"></i>
+                </h1>
+
+                <div class="birthday-date">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>{{ year }}</span>
+                    <i class="fas fa-star rainbow-star"></i>
+                </div>
+
+                <p class="birthday-subtitle">
+                    Every moment with you is a gift<br>
+                    <span class="rainbow-emoji">🌈❤️</span>
+                </p>
+
+                <div class="birthday-actions">
+                    <a href="{{ url_for('message') }}" class="btn btn-lg btn-romantic">
+                        <i class="fas fa-envelope"></i> Read My Message
+                    </a>
+                    <a href="{{ url_for('gallery') }}" class="btn btn-lg btn-romantic-outline">
+                        <i class="fas fa-images"></i> Our Gallery
+                    </a>
+                </div>
+
+                <div class="rainbow-divider"></div>
+
+                <div class="pride-banners">
+                    <div class="rainbow-stripes"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
