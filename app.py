@@ -63,6 +63,7 @@ if all([CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET]):
         CLOUDINARY_CONFIGURED = False
 else:
     print("⚠️ Cloudinary: NOT CONFIGURED")
+    print("   Missing credentials - uploads will use local storage")
     CLOUDINARY_CONFIGURED = False
 
 print("="*50 + "\n")
@@ -122,21 +123,8 @@ def upload_to_cloudinary(file_data, filename):
             unique_filename=True
         )
         
-        print(f"✅ Upload result: {upload_result.get('public_id')}")
-        print(f"   URL: {upload_result.get('secure_url')}")
-        
         file_url = upload_result.get('secure_url')
-        
-        if upload_result.get('resource_type') == 'image':
-            file_url = cloudinary.CloudinaryImage(upload_result.get('public_id')).build_url(
-                transformation=[
-                    {'quality': 'auto:good'},
-                    {'fetch_format': 'auto'},
-                    {'width': 800, 'height': 800, 'crop': 'limit'},
-                    {'flags': 'progressive'}
-                ]
-            )
-        
+        print(f"✅ Uploaded successfully: {file_url}")
         return file_url
         
     except Exception as e:
@@ -182,12 +170,13 @@ def delete_locally(filename):
         return False
 
 def get_cloudinary_files():
+    """Get list of files from Cloudinary (with local fallback)"""
     if not CLOUDINARY_CONFIGURED:
         print("⚠️ Cloudinary not configured, using local files")
         return get_local_files()
     
     try:
-        print("📸 Attempting to fetch files from Cloudinary...")
+        print("📸 Fetching files from Cloudinary...")
         
         # Get files with the birthday_gift prefix
         result = cloudinary.api.resources(
@@ -199,7 +188,7 @@ def get_cloudinary_files():
         
         files = []
         resources = result.get('resources', [])
-        print(f"📸 Files found in Cloudinary: {len(resources)}")
+        print(f"📸 Found {len(resources)} files in Cloudinary")
         
         for resource in resources:
             resource_type = resource.get('resource_type', 'image')
@@ -207,24 +196,16 @@ def get_cloudinary_files():
             public_id = resource.get('public_id', '')
             created_at = resource.get('created_at', '')
             
-            print(f"   📄 Found: {public_id}")
+            # Get the secure URL directly from Cloudinary
+            url = resource.get('secure_url')
             
-            if resource_type == 'image':
-                url = cloudinary.CloudinaryImage(public_id).build_url(
-                    transformation=[
-                        {'quality': 'auto:good'},
-                        {'fetch_format': 'auto'},
-                        {'width': 800, 'height': 800, 'crop': 'limit'},
-                        {'flags': 'progressive'}
-                    ]
-                )
-            else:
-                url = resource.get('secure_url')
+            print(f"   📄 {public_id}")
             
+            # Extract filename from public_id
             filename = public_id.split('/')[-1] if '/' in public_id else public_id
             
             files.append({
-                'url': url,
+                'url': url,  # Use the URL directly from Cloudinary
                 'key': public_id,
                 'filename': filename,
                 'type': resource_type,
@@ -232,7 +213,8 @@ def get_cloudinary_files():
                 'created_at': created_at
             })
         
-        files.sort(key=lambda x: x.get('created_at') if x.get('created_at') else x['key'], reverse=True)
+        # Sort by created_at (newest first)
+        files.sort(key=lambda x: x.get('created_at', ''), reverse=True)
         print(f"✅ Retrieved {len(files)} files from Cloudinary")
         return files
         
@@ -301,19 +283,31 @@ def home():
 
 @app.route('/gallery')
 def gallery():
+    print("="*50)
+    print("📸 GALLERY PAGE LOADED")
+    print("="*50)
+    print(f"☁️ Cloudinary configured: {CLOUDINARY_CONFIGURED}")
+    
     files = get_cloudinary_files()
-    print(f"📸 Gallery has {len(files)} files")
+    
+    print(f"📸 Found {len(files)} files")
+    if files:
+        for i, file in enumerate(files[:5]):
+            print(f"   File {i+1}: {file.get('filename')} - {file.get('type')}")
+    print("="*50 + "\n")
+    
     return render_template('gallery.html', files=files)
 
-@app.route('/test-cloudinary')
-def test_cloudinary():
-    """Test Cloudinary connection and list all files"""
+@app.route('/debug-gallery')
+def debug_gallery():
+    """Debug gallery to see what's happening"""
     if not CLOUDINARY_CONFIGURED:
-        return "❌ Cloudinary is not configured!"
+        return "❌ Cloudinary is NOT configured!"
     
     try:
         result = cloudinary.api.resources(
             type="upload",
+            prefix="birthday_gift",
             resource_type="auto",
             max_results=100
         )
@@ -323,38 +317,52 @@ def test_cloudinary():
         html = """
         <html>
         <head>
-            <title>Cloudinary Test</title>
+            <title>Debug Gallery</title>
             <style>
-                body { font-family: Arial; padding: 20px; }
-                .file { border: 1px solid #ddd; margin: 10px 0; padding: 10px; border-radius: 5px; }
-                img { max-width: 200px; max-height: 200px; }
+                body { font-family: Arial; padding: 20px; background: #f5f0ff; }
+                .file { background: white; margin: 10px 0; padding: 15px; border-radius: 5px; border: 1px solid #ddd; }
+                img, video { max-width: 300px; border-radius: 5px; }
+                .success { color: green; font-weight: bold; }
+                .error { color: red; font-weight: bold; }
             </style>
         </head>
         <body>
-            <h1>📸 Cloudinary Test</h1>
-            <p><strong>Total files:</strong> {len(files)}</p>
+            <h1>🔍 Debug Gallery</h1>
+            <p><strong>Cloudinary Configured:</strong> ✅ Yes</p>
+            <p><strong>Files Found:</strong> {len(files)}</p>
             <hr>
         """
         
-        for file in files:
-            public_id = file.get('public_id', '')
-            resource_type = file.get('resource_type', '')
-            url = file.get('secure_url', '')
-            
-            html += f"""
-            <div class="file">
-                <p><strong>Public ID:</strong> {public_id}</p>
-                <p><strong>Type:</strong> {resource_type}</p>
-                {'<img src="'+url+'" alt="'+public_id+'">' if resource_type == 'image' else '<video controls src="'+url+'" width="200"></video>'}
-                <p><a href="{url}" target="_blank">View full size</a></p>
-            </div>
-            """
+        if files:
+            for i, file in enumerate(files):
+                public_id = file.get('public_id', '')
+                resource_type = file.get('resource_type', '')
+                url = file.get('secure_url', '')
+                format_type = file.get('format', '')
+                
+                html += f"""
+                <div class="file">
+                    <h3>File #{i+1}</h3>
+                    <p><strong>Public ID:</strong> {public_id}</p>
+                    <p><strong>Type:</strong> {resource_type}</p>
+                    <p><strong>Format:</strong> {format_type}</p>
+                    <p><strong>URL:</strong> <a href="{url}" target="_blank">{url[:60]}...</a></p>
+                    {'<img src="'+url+'" alt="'+public_id+'">' if resource_type == 'image' else ''}
+                </div>
+                """
+        else:
+            html += "<p class='error'>No files found with prefix 'birthday_gift'</p>"
         
-        html += "</body></html>"
+        html += """
+        <hr>
+        <p><a href="/gallery">← Back to Gallery</a></p>
+        </body>
+        </html>
+        """
         return html
         
     except Exception as e:
-        return f"❌ Error: {e}"
+        return f"<h1 class='error'>Error: {e}</h1>"
 
 @app.route('/message')
 def message():
